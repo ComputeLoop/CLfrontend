@@ -588,3 +588,83 @@ button {
 .job-status.completed {
   color: #697b9c;
 }
+.auth-screen {
+  min-height: calc(100vh - 66px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+.auth-card .eyebrow {
+  margin-bottom: 10px;
+}
+
+.auth-card h1 {
+  margin: 0 0 10px;
+  font-size: 32px;
+}
+
+.auth-card .subtitle {
+  margin-bottom: 30px;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+
+.auth-card input:focus {
+  border-color: #222;
+}
+
+.auth-card form .create-button {
+  width: 100%;
+  margin-top: 4px;
+  justify-content: center;
+}
+
+.auth-card .cancel-button {
+  width: 100%;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.auth-error {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #b42318;
+  font-size: 14px;
+}

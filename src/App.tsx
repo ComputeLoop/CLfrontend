@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import ProjectDetail from "./projectDetail/projectDetail";
+import { useAuth } from "./context/useAuth";
+import Contribute from "./projectDetail/Contribute";
 const API_URL = "http://localhost:3000";
-
+import AuthScreen from "./auth/AuthScreen";
 interface Project {
   id: string;
   name: string;
@@ -22,6 +24,11 @@ function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
   );
+  const [contributeProjectId, setContributeProjectId] = useState<string | null>(
+    null,
+  );
+  const { user, loading } = useAuth();
+
   useEffect(() => {
     fetch(`${API_URL}/projects`)
       .then((response) => response.json())
@@ -36,6 +43,7 @@ function App() {
     try {
       const response = await fetch(`${API_URL}/projects`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -64,6 +72,44 @@ function App() {
       setCreating(false);
     }
   }
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+  if (contributeProjectId) {
+    const project = projects.find((item) => item.id === contributeProjectId);
+
+    if (project) {
+      return (
+        <div className="app">
+          <header className="navbar">
+            <div className="brand">
+              <div className="brand-mark">C</div>
+              <span>Compute Loop</span>
+            </div>
+
+            <nav className="nav-links">
+              <a className="active" href="#">
+                Projects
+              </a>
+              <a href="#">Contributors</a>
+            </nav>
+
+            <button className="sign-in-button">{user.username}</button>
+          </header>
+
+          <Contribute
+            projectId={project.id}
+            projectName={project.name}
+            onBack={() => setContributeProjectId(null)}
+          />
+        </div>
+      );
+    }
+  }
   if (selectedProjectId) {
     return (
       <div className="app">
@@ -80,7 +126,7 @@ function App() {
             <a href="#">Contributors</a>
           </nav>
 
-          <button className="sign-in-button">Sign in</button>
+          <button className="sign-in-button">{user.username}</button>
         </header>
 
         <ProjectDetail
@@ -105,7 +151,7 @@ function App() {
           <a href="#">Contributors</a>
         </nav>
 
-        <button className="sign-in-button">Sign in</button>
+        <button className="sign-in-button">{user.username}</button>
       </header>
 
       <main className="main-content">
@@ -164,6 +210,13 @@ function App() {
                 </div>
 
                 <div className="project-footer">
+                  <button
+                    className="view-button"
+                    onClick={() => setContributeProjectId(project.id)}
+                  >
+                    Contribute →
+                  </button>
+
                   <span className="contributors">
                     <span className="contributor-icon">◉</span>
                     Open for contributors
