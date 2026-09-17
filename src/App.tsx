@@ -27,7 +27,7 @@ function App() {
   const [contributeProjectId, setContributeProjectId] = useState<string | null>(
     null,
   );
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
     fetch(`${API_URL}/projects`)
@@ -98,7 +98,9 @@ function App() {
               <a href="#">Contributors</a>
             </nav>
 
-            <button className="sign-in-button">{user.username}</button>
+            <button className="sign-in-button" onClick={logout}>
+              Logout
+            </button>
           </header>
 
           <Contribute
@@ -126,7 +128,9 @@ function App() {
             <a href="#">Contributors</a>
           </nav>
 
-          <button className="sign-in-button">{user.username}</button>
+          <button className="sign-in-button" onClick={logout}>
+            Logout
+          </button>
         </header>
 
         <ProjectDetail
@@ -151,7 +155,9 @@ function App() {
           <a href="#">Contributors</a>
         </nav>
 
-        <button className="sign-in-button">{user.username}</button>
+        <button className="sign-in-button" onClick={logout}>
+          Logout
+        </button>
       </header>
 
       <main className="main-content">

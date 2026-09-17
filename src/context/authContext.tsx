@@ -1,13 +1,6 @@
-import {
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-import {
-  AuthContext,
-  type User,
-} from "./authcontext";
+import { AuthContext, type User } from "./authcontext";
 
 const API_URL = "http://localhost:3000";
 
@@ -54,11 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }
 
-  async function register(
-    email: string,
-    username: string,
-    password: string,
-  ) {
+  async function register(email: string, username: string, password: string) {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: {
@@ -78,10 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function logout() {
+  async function logout() {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
     setUser(null);
   }
-
   return (
     <AuthContext.Provider
       value={{
