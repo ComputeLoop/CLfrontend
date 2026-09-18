@@ -3,7 +3,7 @@ import "./App.css";
 import ProjectDetail from "./projectDetail/projectDetail";
 import { useAuth } from "./context/useAuth";
 import Contribute from "./projectDetail/Contribute";
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
 import AuthScreen from "./auth/AuthScreen";
 interface Project {
   id: string;
