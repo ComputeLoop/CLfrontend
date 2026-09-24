@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { AuthContext, type User } from "./authcontext";
 
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface AuthResponse {
@@ -10,7 +9,6 @@ interface AuthResponse {
   user?: User;
 }
 
-/** Parse a JSON body without assuming the response is JSON. */
 async function parseResponse(response: Response): Promise<AuthResponse> {
   const text = await response.text();
   try {
@@ -91,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(null);
   }
+
   return (
     <AuthContext.Provider
       value={{

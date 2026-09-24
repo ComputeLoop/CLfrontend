@@ -69,7 +69,6 @@ export default function Explore({
           setError("Couldn't load the explore feed.");
         }
       } catch {
-        // network hiccup — next poll will retry
       } finally {
         if (!cancelled) setLoaded(true);
       }
@@ -185,22 +184,29 @@ export default function Explore({
               </div>
 
               <div className="project-footer">
-                <button
-                  className="create-button"
-                  onClick={() => onContribute(project.id, project.name)}
-                  disabled={project.pendingJobs === 0}
-                >
-                  Contribute →
-                </button>
+                <span className="contributors">
+                  <span className="contributor-icon">◉</span>
+                  {project.status}
+                </span>
 
-                {isMine && (
+                <div className="footer-actions">
+                  {isMine && (
+                    <button
+                      className="view-button"
+                      onClick={() => onManage(project.id)}
+                    >
+                      Manage
+                    </button>
+                  )}
+
                   <button
-                    className="view-button"
-                    onClick={() => onManage(project.id)}
+                    className="create-button"
+                    onClick={() => onContribute(project.id, project.name)}
+                    disabled={project.pendingJobs === 0}
                   >
-                    Manage
+                    Contribute →
                   </button>
-                )}
+                </div>
               </div>
             </article>
           );

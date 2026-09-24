@@ -110,9 +110,6 @@ export default function ProjectDetail({
     return () => clearInterval(interval);
   }, [refresh]);
 
-  // Operation-derived split info: the field the split form sends and its label
-  // must come from the OPERATION, never from project.splitType — a fresh
-  // project has split_type = NULL until its first split.
   const op = operations.find((o) => o.type === project?.opType);
   const splitKind = op?.splitKind ?? null;
   const defaultChunkSize = op?.defaultChunkSize ?? 5;
@@ -308,7 +305,6 @@ export default function ProjectDetail({
         </div>
       </section>
 
-      {/* Dataset upload / split */}
       <section className="dataset-section">
         <div className="section-heading">
           <div>
@@ -366,7 +362,7 @@ export default function ProjectDetail({
               {project.totalJobs > 0 &&
                 " Nothing has been claimed yet, so you can re-split with a different size."}
             </p>
-            <form onSubmit={splitDataset}>
+            <form className="split-form" onSubmit={splitDataset}>
               <label className="inline-field">
                 {chunkSizeLabel}
                 <input
@@ -415,7 +411,6 @@ export default function ProjectDetail({
         )}
       </section>
 
-      {/* Result */}
       {project.hasResult && (
         <section className="dataset-section">
           <div className="section-heading">
@@ -434,7 +429,7 @@ export default function ProjectDetail({
               <button className="create-button" onClick={downloadResult}>
                 ⬇ Download results
               </button>
-              <button className="view-button" onClick={retryMerge}>
+              <button className="secondary-button" onClick={retryMerge}>
                 Re-merge
               </button>
             </div>
