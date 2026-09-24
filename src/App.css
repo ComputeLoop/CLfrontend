@@ -276,6 +276,25 @@ button {
   font-size: 10px;
 }
 
+.explore-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid #e4e4df;
+  border-radius: 999px;
+  background: #f7f7f4;
+  color: #6c6c68;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .view-button {
   border: 0;
   padding: 0;
@@ -533,6 +552,12 @@ button {
   font-size: 12px;
 }
 
+.job-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .jobs-table {
   overflow: hidden;
   border: 1px solid #e4e4df;
@@ -667,4 +692,158 @@ button {
   background: #fff1f1;
   color: #b42318;
   font-size: 14px;
+}
+
+.job-status.failed {
+  color: #b42318;
+}
+
+/* ------------------------------------------------------------------ */
+/* Compute Loop additions: ops, dataset flow, contribute workflow      */
+/* ------------------------------------------------------------------ */
+
+.op-badge {
+  padding: 5px 10px;
+  border: 1px solid #e4e4df;
+  border-radius: 999px;
+  background: #fff;
+  color: #555552;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.op-detail-box {
+  margin: 2px 0 20px;
+  padding: 12px 14px;
+  border: 1px solid #e4e4df;
+  border-radius: 10px;
+  background: #fafaf8;
+  font-size: 13px;
+  color: #555552;
+  line-height: 1.5;
+}
+
+.op-detail-box p {
+  margin: 0;
+}
+
+.op-output {
+  margin-top: 6px !important;
+  color: #999995;
+  font-size: 12px;
+}
+
+.dataset-section {
+  margin-top: 42px;
+}
+
+.datacard {
+  padding: 24px 28px;
+  border: 1px solid #e4e4df;
+  border-radius: 12px;
+  background: white;
+}
+
+.datacard .instruction {
+  margin: 0 0 16px;
+  color: #555552;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.instruction.warn {
+  color: #8a5a00;
+}
+
+.hint {
+  margin: 10px 0 0;
+  color: #999995;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.form-error {
+  margin: 12px 0 0;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.upload-row input[type="file"] {
+  font-size: 13px;
+  color: #555552;
+}
+
+.inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 16px;
+  color: #777773;
+  font-size: 13px;
+}
+
+.inline-field input {
+  width: 110px;
+}
+
+.result-box {
+  border-color: #d6e8d8;
+  background: #fbfefb;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.result-actions a {
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.code-block {
+  margin: 10px 0 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: #1c1c1f;
+  color: #d8d8d4;
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.key-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.key-block {
+  flex: 1;
+  color: #9ee493;
+}
+
+.reg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 720px) {
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
 }

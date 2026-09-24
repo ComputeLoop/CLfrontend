@@ -5,6 +5,21 @@ import { AuthContext, type User } from "./authcontext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+interface AuthResponse {
+  message?: string;
+  user?: User;
+}
+
+/** Parse a JSON body without assuming the response is JSON. */
+async function parseResponse(response: Response): Promise<AuthResponse> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as AuthResponse;
+  } catch {
+    return { message: text.trim() || response.statusText || "Request failed" };
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,13 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(data.message ?? "Login failed");
     }
 
-    setUser(data.user);
+    setUser(data.user ?? null);
   }
 
   async function register(email: string, username: string, password: string) {
@@ -61,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(data.message ?? "Registration failed");
