@@ -23,8 +23,8 @@ export default function AuthScreen() {
         await register(email, username, password);
         await login(email, password);
       }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Something went wrong");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }

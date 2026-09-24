@@ -132,7 +132,6 @@ export default function Contribute({
         )}
       </section>
 
-      {/* One-time API key */}
       {apiKey && (
         <section className="dataset-section">
           <div className="section-heading">
@@ -149,7 +148,7 @@ export default function Contribute({
             </p>
             <div className="key-row">
               <pre className="code-block key-block">{apiKey}</pre>
-              <button className="view-button" onClick={copyKey}>
+              <button className="copy-button" onClick={copyKey}>
                 {copied ? "Copied ✓" : "Copy"}
               </button>
             </div>
@@ -157,7 +156,6 @@ export default function Contribute({
         </section>
       )}
 
-      {/* Registration form */}
       {!apiKey && (
         <section className="dataset-section">
           <div className="section-heading">
@@ -215,7 +213,6 @@ export default function Contribute({
         </section>
       )}
 
-      {/* Worker list */}
       <section className="jobs-section">
         <div className="section-heading">
           <div>
@@ -227,7 +224,7 @@ export default function Contribute({
         </div>
 
         <div className="jobs-table">
-          <div className="job-row job-header">
+          <div className="worker-row job-header">
             <span>NAME</span>
             <span>GPU</span>
             <span>STATUS</span>
@@ -235,7 +232,7 @@ export default function Contribute({
           </div>
 
           {workers.map((worker) => (
-            <div className="job-row" key={worker.id}>
+            <div className="worker-row" key={worker.id}>
               <strong>{worker.name}</strong>
 
               <span className="job-range">
@@ -258,7 +255,7 @@ export default function Contribute({
           ))}
 
           {workers.length === 0 && (
-            <div className="job-row">
+            <div className="worker-row">
               <strong>—</strong>
               <span className="job-range">No workers registered yet</span>
               <span className="job-status pending">

@@ -48,37 +48,39 @@ function Navbar({
 }) {
   return (
     <header className="navbar">
-      <div className="brand">
-        <div className="brand-mark">C</div>
-        <span>Compute Loop</span>
+      <div className="navbar-inner">
+        <div className="brand">
+          <div className="brand-mark">C</div>
+          <span>Compute Loop</span>
+        </div>
+
+        <nav className="nav-links">
+          <a
+            className={view === "mine" ? "active" : ""}
+            href="#"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate("mine");
+            }}
+          >
+            My Projects
+          </a>
+          <a
+            className={view === "explore" ? "active" : ""}
+            href="#"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate("explore");
+            }}
+          >
+            Explore
+          </a>
+        </nav>
+
+        <button className="sign-in-button" onClick={onLogout}>
+          Logout
+        </button>
       </div>
-
-      <nav className="nav-links">
-        <a
-          className={view === "mine" ? "active" : ""}
-          href="#"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate("mine");
-          }}
-        >
-          My Projects
-        </a>
-        <a
-          className={view === "explore" ? "active" : ""}
-          href="#"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate("explore");
-          }}
-        >
-          Explore
-        </a>
-      </nav>
-
-      <button className="sign-in-button" onClick={onLogout}>
-        Logout
-      </button>
     </header>
   );
 }
@@ -122,12 +124,8 @@ function App() {
         if (data.length > 0) setOpType(data[0].type);
       })
       .catch((error) => console.error("Failed to load operations:", error));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the home grid in sync while it's visible: refetch immediately when the
-  // home view opens (e.g. returning from a project's detail page), then poll
-  // quietly so a finished project's card updates on its own.
   const homeVisible =
     !selectedProjectId && !contributeProjectId && view === "mine";
   useEffect(() => {
@@ -135,12 +133,10 @@ function App() {
     loadProjects();
     const timer = window.setInterval(loadProjects, 5000);
     return () => window.clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [homeVisible]);
 
   const selectedOp = operations.find((op) => op.type === opType);
 
-  // Single navigation handler shared by every navbar.
   function navigate(next: View) {
     setView(next);
     setSelectedProjectId(null);
@@ -305,13 +301,6 @@ function App() {
                   </div>
 
                   <div className="project-footer">
-                    <button
-                      className="view-button"
-                      onClick={() => setContributeProjectId(project.id)}
-                    >
-                      Contribute →
-                    </button>
-
                     <span className="contributors">
                       <span className="contributor-icon">◉</span>
                       {project.hasDataset
@@ -319,12 +308,21 @@ function App() {
                         : "Awaiting dataset"}
                     </span>
 
-                    <button
-                      className="view-button"
-                      onClick={() => setSelectedProjectId(project.id)}
-                    >
-                      View project →
-                    </button>
+                    <div className="footer-actions">
+                      <button
+                        className="view-button"
+                        onClick={() => setContributeProjectId(project.id)}
+                      >
+                        Contribute →
+                      </button>
+
+                      <button
+                        className="create-button"
+                        onClick={() => setSelectedProjectId(project.id)}
+                      >
+                        View project →
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
