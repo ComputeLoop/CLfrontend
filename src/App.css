@@ -340,6 +340,50 @@ button {
   white-space: nowrap;
 }
 
+.os-switch {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+
+.os-switch button {
+  border: 1px solid #deded9;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: white;
+  color: #555559;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.os-switch button.active {
+  border-color: #1c1c1f;
+  background: #1c1c1f;
+  color: white;
+}
+
+.command-block {
+  white-space: pre-wrap;
+  word-break: break-all;
+  flex: 1;
+}
+
+.advanced-setup {
+  margin-top: 14px;
+}
+
+.advanced-setup summary {
+  cursor: pointer;
+  color: #777773;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.advanced-setup .code-block {
+  margin-top: 10px;
+}
+
 .view-button {
   display: inline-flex;
   align-items: center;

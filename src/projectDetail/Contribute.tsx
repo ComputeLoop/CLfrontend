@@ -86,16 +86,26 @@ export default function Contribute({
     }
   }
 
-  function copyKey() {
-    if (!apiKey) return;
-    navigator.clipboard?.writeText(apiKey).catch(() => {});
+  function copyText(text: string) {
+    if (!text) return;
+    navigator.clipboard?.writeText(text).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const runCommand = apiKey
-    ? `cd worker\nbun install\nWORKER_API_KEY=${apiKey} COMPUTELOOP_API=${API_URL} bun run index.ts ${projectId}`
-    : `cd worker\nWORKER_API_KEY=<your key> COMPUTELOOP_API=${API_URL} bun run index.ts ${projectId}`;
+  const [osTab, setOsTab] = useState<"windows" | "unix">(() =>
+    /Windows/i.test(navigator.userAgent) ? "windows" : "unix",
+  );
+
+  const bashCommand = `API_KEY=${apiKey ?? "<your key>"} PROJECT=${projectId} COMPUTELOOP_API=${API_URL} bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
+
+  const psCommand = `$env:API_KEY="${apiKey ?? "<your key>"}"; $env:PROJECT="${projectId}"; $env:COMPUTELOOP_API="${API_URL}"; iex (irm https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1)`;
+
+  const activeCommand = osTab === "windows" ? psCommand : bashCommand;
+
+  const manualCommand = `cd worker
+bun install --ignore-scripts   # only needed for the GPU op
+WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run index.ts ${projectId}`;
 
   return (
     <main className="main-content">
@@ -117,11 +127,42 @@ export default function Contribute({
       <section className="progress-card">
         <p className="section-label">PROJECT ORIGIN</p>
         <p className="instruction">
-          Run the worker on this project with the command below. Before you
-          can claim chunks, register at least one worker machine.
+          Copy-paste <strong>one command</strong> into your terminal — it
+          installs the runtime if needed, downloads the worker, and starts
+          claiming chunks on this project. Pick your operating system:
         </p>
 
-        <pre className="code-block">{runCommand}</pre>
+        <div className="os-switch">
+          <button
+            className={osTab === "windows" ? "active" : ""}
+            onClick={() => setOsTab("windows")}
+          >
+            Windows (PowerShell)
+          </button>
+          <button
+            className={osTab === "unix" ? "active" : ""}
+            onClick={() => setOsTab("unix")}
+          >
+            macOS / Linux (Terminal)
+          </button>
+        </div>
+
+        <div className="key-row">
+          <pre className="code-block key-block command-block">
+            {activeCommand}
+          </pre>
+          <button
+            className="copy-button"
+            onClick={() => copyText(activeCommand)}
+          >
+            {copied ? "Copied ✓" : "Copy"}
+          </button>
+        </div>
+
+        <details className="advanced-setup">
+          <summary>Already have the worker cloned? Manual command</summary>
+          <pre className="code-block command-block">{manualCommand}</pre>
+        </details>
 
         {!apiKey && (
           <p className="hint">
@@ -148,7 +189,7 @@ export default function Contribute({
             </p>
             <div className="key-row">
               <pre className="code-block key-block">{apiKey}</pre>
-              <button className="copy-button" onClick={copyKey}>
+              <button className="copy-button" onClick={() => copyText(apiKey)}>
                 {copied ? "Copied ✓" : "Copy"}
               </button>
             </div>
