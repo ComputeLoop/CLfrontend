@@ -97,11 +97,17 @@ export default function Contribute({
     /Windows/i.test(navigator.userAgent) ? "windows" : "unix",
   );
 
-  const bashCommand = `API_KEY=${apiKey ?? "<your key>"} PROJECT=${projectId} COMPUTELOOP_API=${API_URL} bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
-
-  const psCommand = `$env:API_KEY="${apiKey ?? "<your key>"}"; $env:PROJECT="${projectId}"; $env:COMPUTELOOP_API="${API_URL}"; iex ((curl.exe -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1) -join ([char]10))`;
+ 
+  const bashCommand = `bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
+  const psCommand = `iex ((curl.exe -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1) -join ([char]10))`;
 
   const activeCommand = osTab === "windows" ? psCommand : bashCommand;
+
+
+  const headlessBashCommand = `API_KEY=${apiKey ?? "<your key>"} PROJECT=${projectId} COMPUTELOOP_API=${API_URL} bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
+  const headlessPsCommand = `$env:API_KEY="${apiKey ?? "<your key>"}"; $env:PROJECT="${projectId}"; $env:COMPUTELOOP_API="${API_URL}"; iex ((curl.exe -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1) -join ([char]10))`;
+  const headlessCommand =
+    osTab === "windows" ? headlessPsCommand : headlessBashCommand;
 
   const manualCommand = `cd worker
 bun install --ignore-scripts   # only needed for the GPU op
@@ -124,84 +130,11 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
         </div>
       </section>
 
-      <section className="progress-card">
-        <p className="section-label">PROJECT ORIGIN</p>
-        <p className="instruction">
-          Copy-paste <strong>one command</strong> into your terminal — it
-          installs the runtime if needed, downloads the worker, and starts
-          claiming chunks on this project. Pick your operating system:
-        </p>
-
-        <div className="os-switch">
-          <button
-            className={osTab === "windows" ? "active" : ""}
-            onClick={() => setOsTab("windows")}
-          >
-            Windows (PowerShell)
-          </button>
-          <button
-            className={osTab === "unix" ? "active" : ""}
-            onClick={() => setOsTab("unix")}
-          >
-            macOS / Linux (Terminal)
-          </button>
-        </div>
-
-        <div className="key-row">
-          <pre className="code-block key-block command-block">
-            {activeCommand}
-          </pre>
-          <button
-            className="copy-button"
-            onClick={() => copyText(activeCommand)}
-          >
-            {copied ? "Copied ✓" : "Copy"}
-          </button>
-        </div>
-
-        <details className="advanced-setup">
-          <summary>Already have the worker cloned? Manual command</summary>
-          <pre className="code-block command-block">{manualCommand}</pre>
-        </details>
-
-        {!apiKey && (
-          <p className="hint">
-            Registered machines appear below. The worker only runs the
-            platform's standardized operation — your machine never executes
-            renter code.
-          </p>
-        )}
-      </section>
-
-      {apiKey && (
+      {!apiKey ? (
         <section className="dataset-section">
           <div className="section-heading">
             <div>
-              <p className="section-label">NEW WORKER · API KEY</p>
-              <h2>Copy your key now</h2>
-            </div>
-          </div>
-
-          <div className="datacard result-box">
-            <p className="instruction warn">
-              This key is shown <strong>only once</strong>. Store it somewhere
-              safe — anyone with it can process chunks as this worker.
-            </p>
-            <div className="key-row">
-              <pre className="code-block key-block">{apiKey}</pre>
-              <button className="copy-button" onClick={() => copyText(apiKey)}>
-                {copied ? "Copied ✓" : "Copy"}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {!apiKey && (
-        <section className="dataset-section">
-          <div className="section-heading">
-            <div>
-              <p className="section-label">GET STARTED</p>
+              <p className="section-label">STEP 1 · GET YOUR KEY</p>
               <h2>Register a worker machine</h2>
             </div>
           </div>
@@ -250,9 +183,89 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
               </button>
             </form>
             {error && <p className="form-error">{error}</p>}
+            <p className="hint">
+              Registered machines appear below. The worker only runs the
+              platform's standardized operation — your machine never executes
+              renter code.
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="dataset-section">
+          <div className="section-heading">
+            <div>
+              <p className="section-label">STEP 1 · YOUR KEY IS READY</p>
+              <h2>Copy your key now</h2>
+            </div>
+          </div>
+
+          <div className="datacard result-box">
+            <p className="instruction warn">
+              This key is shown <strong>only once</strong>. Paste it into the
+              contributor app in step 2 — it is stored on your machine only,
+              and you will not need to type it again.
+            </p>
+            <div className="key-row">
+              <pre className="code-block key-block">{apiKey}</pre>
+              <button className="copy-button" onClick={() => copyText(apiKey)}>
+                {copied ? "Copied ✓" : "Copy"}
+              </button>
+            </div>
           </div>
         </section>
       )}
+
+      <section className="progress-card">
+        <p className="section-label">STEP 2 · RUN THE CONTRIBUTOR APP</p>
+        <p className="instruction">
+          Copy-paste <strong>one command</strong> — nothing to edit. It
+          installs the runtime if needed and opens the app in your browser:
+          paste your key once, pick a project from the dropdown, press Start.
+          The key is remembered on this machine for next time. Pick your
+          operating system:
+        </p>
+
+        <div className="os-switch">
+          <button
+            className={osTab === "windows" ? "active" : ""}
+            onClick={() => setOsTab("windows")}
+          >
+            Windows (PowerShell)
+          </button>
+          <button
+            className={osTab === "unix" ? "active" : ""}
+            onClick={() => setOsTab("unix")}
+          >
+            macOS / Linux (Terminal)
+          </button>
+        </div>
+
+        <div className="key-row">
+          <pre className="code-block key-block command-block">
+            {activeCommand}
+          </pre>
+          <button
+            className="copy-button"
+            onClick={() => copyText(activeCommand)}
+          >
+            {copied ? "Copied ✓" : "Copy"}
+          </button>
+        </div>
+
+        <details className="advanced-setup">
+          <summary>Headless mode — run straight in the terminal</summary>
+          <p className="hint">
+            The key and this project get baked into the command; no browser,
+            terminal stays open:
+          </p>
+          <pre className="code-block command-block">{headlessCommand}</pre>
+        </details>
+
+        <details className="advanced-setup">
+          <summary>Already have the worker cloned? Manual command</summary>
+          <pre className="code-block command-block">{manualCommand}</pre>
+        </details>
+      </section>
 
       <section className="jobs-section">
         <div className="section-heading">
