@@ -35,16 +35,32 @@ interface Project {
   datasetFormat: string | null;
   isSplit: boolean;
   hasResult: boolean;
+  rewardPerChunk: number;
+  escrowCredits: number;
+}
+
+interface WalletTransaction {
+  id: string;
+  projectId: string | null;
+  jobId: string | null;
+  kind: string;
+  amount: number;
+  note: string;
+  createdAt: string;
 }
 
 function Navbar({
   view,
   onNavigate,
   onLogout,
+  credits,
+  onOpenWallet,
 }: {
   view: View;
   onNavigate: (view: View) => void;
   onLogout: () => void;
+  credits: number;
+  onOpenWallet: () => void;
 }) {
   return (
     <header className="navbar">
@@ -77,11 +93,46 @@ function Navbar({
           </a>
         </nav>
 
-        <button className="sign-in-button" onClick={onLogout}>
-          Logout
-        </button>
+        <div className="nav-account">
+          <button className="wallet-button" onClick={onOpenWallet}>
+            {credits.toLocaleString()} mock credits
+          </button>
+          <button className="sign-in-button" onClick={onLogout}>Logout</button>
+        </div>
       </div>
     </header>
+  );
+}
+
+function WalletModal({
+  credits,
+  transactions,
+  onClose,
+}: {
+  credits: number;
+  transactions: WalletTransaction[];
+  onClose: () => void;
+}) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <section className="modal wallet-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header">
+          <div><p className="eyebrow">MOCK WALLET</p><h2>{credits.toLocaleString()} credits</h2></div>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
+        <p className="hint">Demo credits only; no real payments are processed.</p>
+        <div className="wallet-transactions">
+          {transactions.length ? transactions.map((transaction) => (
+            <div className="wallet-transaction" key={transaction.id}>
+              <div><strong>{transaction.note}</strong><small>{new Date(transaction.createdAt).toLocaleString()}</small></div>
+              <b className={transaction.amount < 0 ? "credit-negative" : "credit-positive"}>
+                {transaction.amount > 0 ? "+" : ""}{transaction.amount}
+              </b>
+            </div>
+          )) : <p className="hint">No credit activity yet.</p>}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -92,6 +143,11 @@ function App() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [opType, setOpType] = useState("");
+  const [rewardPerChunk, setRewardPerChunk] = useState(10);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [credits, setCredits] = useState(0);
+  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [showWallet, setShowWallet] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
@@ -102,6 +158,28 @@ function App() {
   const [contributeName, setContributeName] = useState<string>("");
   const [view, setView] = useState<View>("mine");
   const { user, loading, logout } = useAuth();
+
+  async function loadWallet() {
+    try {
+      const response = await fetch(`${API_URL}/wallet`, { credentials: "include" });
+      if (!response.ok) return;
+      const wallet = (await response.json()) as {
+        credits: number;
+        transactions: WalletTransaction[];
+      };
+      setCredits(wallet.credits);
+      setWalletTransactions(wallet.transactions);
+    } catch (error) {
+      console.error("Failed to load wallet:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    void loadWallet();
+    const timer = window.setInterval(loadWallet, 5000);
+    return () => window.clearInterval(timer);
+  }, [user]);
 
   async function loadProjects() {
     try {
@@ -114,17 +192,39 @@ function App() {
     }
   }
 
+  async function loadOperations() {
+    try {
+      const response = await fetch(`${API_URL}/operations`);
+      if (!response.ok) {
+        throw new Error(`Operations request failed (${response.status})`);
+      }
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Operations API returned an invalid response");
+      }
+      const available = data as Operation[];
+      setOperations(available);
+      setOpType((current) =>
+        available.some((operation) => operation.type === current)
+          ? current
+          : (available[0]?.type ?? ""),
+      );
+    } catch (error) {
+      console.error("Failed to load operations:", error);
+      setOperations([]);
+      setOpType("");
+    }
+  }
+
   useEffect(() => {
     loadProjects();
-
-    fetch(`${API_URL}/operations`)
-      .then((response) => response.json())
-      .then((data) => {
-        setOperations(data);
-        if (data.length > 0) setOpType(data[0].type);
-      })
-      .catch((error) => console.error("Failed to load operations:", error));
+    void loadOperations();
   }, []);
+
+  function openCreateProject() {
+    setShowCreate(true);
+    void loadOperations();
+  }
 
   const homeVisible =
     !selectedProjectId && !contributeProjectId && view === "mine";
@@ -159,20 +259,25 @@ function App() {
           name,
           description,
           opType,
+          rewardPerChunk,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create project");
+        const body = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(body?.message ?? "Failed to create project");
       }
 
       await loadProjects();
 
       setName("");
       setDescription("");
+      setRewardPerChunk(10);
+      setCreateError(null);
       setShowCreate(false);
     } catch (error) {
       console.error(error);
+      setCreateError(error instanceof Error ? error.message : "Failed to create project");
     } finally {
       setCreating(false);
     }
@@ -195,13 +300,14 @@ function App() {
 
     return (
       <div className="app">
-        <Navbar view={view} onNavigate={navigate} onLogout={logout} />
+        <Navbar view={view} onNavigate={navigate} onLogout={logout} credits={credits} onOpenWallet={() => setShowWallet(true)} />
 
         <Contribute
           projectId={project.id}
           projectName={project.name}
           onBack={() => setContributeProjectId(null)}
         />
+        {showWallet && <WalletModal credits={credits} transactions={walletTransactions} onClose={() => setShowWallet(false)} />}
       </div>
     );
   }
@@ -209,19 +315,20 @@ function App() {
   if (selectedProjectId) {
     return (
       <div className="app">
-        <Navbar view={view} onNavigate={navigate} onLogout={logout} />
+        <Navbar view={view} onNavigate={navigate} onLogout={logout} credits={credits} onOpenWallet={() => setShowWallet(true)} />
 
         <ProjectDetail
           projectId={selectedProjectId}
           onBack={() => setSelectedProjectId(null)}
         />
+        {showWallet && <WalletModal credits={credits} transactions={walletTransactions} onClose={() => setShowWallet(false)} />}
       </div>
     );
   }
 
   return (
     <div className="app">
-      <Navbar view={view} onNavigate={navigate} onLogout={logout} />
+      <Navbar view={view} onNavigate={navigate} onLogout={logout} credits={credits} onOpenWallet={() => setShowWallet(true)} />
 
       {view === "explore" ? (
         <Explore
@@ -246,7 +353,7 @@ function App() {
 
             <button
               className="create-button"
-              onClick={() => setShowCreate(true)}
+              onClick={openCreateProject}
             >
               <span>+</span>
               New project
@@ -298,6 +405,9 @@ function App() {
                         ? "No chunks yet — upload a dataset and split"
                         : `${project.completedJobs} of ${project.totalJobs} chunks completed`}
                     </div>
+                    <div className="job-count">
+                      Reward: {project.rewardPerChunk} credits per chunk · {project.escrowCredits} in escrow
+                    </div>
                   </div>
 
                   <div className="project-footer">
@@ -335,7 +445,7 @@ function App() {
                 <p>Create the first project and start sharing compute power.</p>
                 <button
                   className="create-button"
-                  onClick={() => setShowCreate(true)}
+                  onClick={openCreateProject}
                 >
                   <span>+</span>
                   Create project
@@ -399,6 +509,21 @@ function App() {
                 </select>
               </label>
 
+              <label>
+                Reward per successful chunk (mock credits)
+                <input
+                  type="number"
+                  min="1"
+                  max="1000000"
+                  value={rewardPerChunk}
+                  onChange={(event) => setRewardPerChunk(Number(event.target.value))}
+                />
+              </label>
+              <p className="hint">
+                Your reward is escrowed when you split the dataset and paid to contributors as chunks complete.
+              </p>
+              {createError && <p className="form-error">{createError}</p>}
+
               {selectedOp && (
                 <div className="op-detail-box">
                   <p>{selectedOp.description}</p>
@@ -430,6 +555,7 @@ function App() {
           </div>
         </div>
       )}
+      {showWallet && <WalletModal credits={credits} transactions={walletTransactions} onClose={() => setShowWallet(false)} />}
     </div>
   );
 }

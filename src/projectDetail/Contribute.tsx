@@ -7,6 +7,7 @@ interface WorkerInfo {
   name: string;
   gpuName: string | null;
   vramMb: number | null;
+  cudaReady: boolean;
   status: string;
   lastHeartbeat: string | null;
   online: boolean;
@@ -124,8 +125,9 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
           <p className="eyebrow">CONTRIBUTE</p>
           <h1>{projectName}</h1>
           <p className="subtitle">
-            Claim chunks of this dataset and process them on your machine. Your
-            GPU works on real data — earn future pocket money per chunk.
+            Register this machine once, then choose the projects and pending
+            chunks you want it to process in the local contributor client.
+            Successful chunks earn mock credits shown in your wallet.
           </p>
         </div>
       </section>
@@ -280,7 +282,7 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
         <div className="jobs-table">
           <div className="worker-row job-header">
             <span>NAME</span>
-            <span>GPU</span>
+            <span>GPU / CUDA</span>
             <span>STATUS</span>
             <span>CHUNKS DONE</span>
           </div>
@@ -290,7 +292,11 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
               <strong>{worker.name}</strong>
 
               <span className="job-range">
-                {worker.gpuName ?? (worker.vramMb ? `${worker.vramMb} MB` : "CPU")}
+                {worker.gpuName
+                  ? `${worker.gpuName} · ${worker.cudaReady ? "CUDA ready" : "not CUDA-ready"}`
+                  : worker.vramMb
+                    ? `${worker.vramMb} MB · not CUDA-ready`
+                    : "CPU"}
               </span>
 
               <span

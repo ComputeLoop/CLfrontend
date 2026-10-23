@@ -36,6 +36,8 @@ interface Project {
   dataset: Dataset | null;
   isSplit: boolean;
   hasResult: boolean;
+  rewardPerChunk: number;
+  escrowCredits: number;
 }
 
 interface Job {
@@ -303,6 +305,10 @@ export default function ProjectDetail({
             style={{ width: `${progress}%` }}
           />
         </div>
+        <p className="hint">
+          Contributor reward: <strong>{project.rewardPerChunk} mock credits per successful chunk</strong>
+          {project.escrowCredits > 0 && ` · ${project.escrowCredits} credits held in escrow`}
+        </p>
       </section>
 
       <section className="dataset-section">
@@ -475,7 +481,7 @@ export default function ProjectDetail({
             <span>CHUNK</span>
             <span>RANGE</span>
             <span>STATUS</span>
-            <span>WORKER</span>
+            <span>WORKER ID</span>
           </div>
 
           {jobs.map((job) => (
@@ -502,11 +508,9 @@ export default function ProjectDetail({
               </span>
 
               <span className="worker-name">
-                {job.status === "COMPLETED" && job.durationMs != null
-                  ? `${(job.durationMs / 1000).toFixed(1)}s`
-                  : job.workerId
-                    ? job.workerId.slice(0, 8)
-                    : "—"}
+                {job.workerId ? (
+                  <code title={job.workerId}>{job.workerId.slice(0, 8)}</code>
+                ) : "—"}
               </span>
             </div>
           ))}
