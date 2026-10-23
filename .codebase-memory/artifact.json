@@ -1,0 +1,12 @@
+{
+    "schema_version": 2,
+    "commit": "954b8b08b6bb28867d0e94de74cd1db7f6e3a1d5",
+    "indexed_at": "2026-10-23T05:59:46Z",
+    "project": "home-silverwolf-computeloop2-frontend",
+    "nodes": 141,
+    "edges": 230,
+    "original_size": 2490368,
+    "compressed_size": 122478,
+    "compression_level": 9,
+    "reconcile_basis": "git-clean-head"
+}

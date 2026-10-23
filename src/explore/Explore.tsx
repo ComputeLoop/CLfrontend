@@ -22,6 +22,8 @@ interface ExploreProject {
   completedJobs: number;
   pendingJobs: number;
   contributors: number;
+  rewardPerChunk: number;
+  escrowCredits: number;
   createdAt: string;
 }
 
@@ -89,8 +91,8 @@ export default function Explore({
           <p className="eyebrow">CONTRIBUTE NETWORK</p>
           <h1>Explore</h1>
           <p className="subtitle">
-            Projects open for contribution. Pick one, register a worker, and
-            your machine processes standardized chunks for a renter.
+            Renters post computation jobs here. Register your machine once,
+            then choose a project and the specific pending chunks to run.
           </p>
         </div>
       </section>
@@ -157,6 +159,9 @@ export default function Explore({
                 <span className="meta-chip">
                   {project.pendingJobs} chunk
                   {project.pendingJobs === 1 ? "" : "s"} to do
+                </span>
+                <span className="meta-chip reward-chip">
+                  {project.rewardPerChunk} credits per successful chunk
                 </span>
                 <span className="meta-chip">
                   {project.contributors} contributor
