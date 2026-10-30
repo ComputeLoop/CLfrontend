@@ -7,7 +7,8 @@ interface WorkerInfo {
   name: string;
   gpuName: string | null;
   vramMb: number | null;
-  cudaReady: boolean;
+  gpuReady: boolean;
+  gpuBackend: "cuda" | "directml" | null;
   status: string;
   lastHeartbeat: string | null;
   online: boolean;
@@ -98,12 +99,10 @@ export default function Contribute({
     /Windows/i.test(navigator.userAgent) ? "windows" : "unix",
   );
 
- 
   const bashCommand = `bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
   const psCommand = `iex ((curl.exe -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1) -join ([char]10))`;
 
   const activeCommand = osTab === "windows" ? psCommand : bashCommand;
-
 
   const headlessBashCommand = `API_KEY=${apiKey ?? "<your key>"} PROJECT=${projectId} COMPUTELOOP_API=${API_URL} bash -c "$(curl -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.sh)"`;
   const headlessPsCommand = `$env:API_KEY="${apiKey ?? "<your key>"}"; $env:PROJECT="${projectId}"; $env:COMPUTELOOP_API="${API_URL}"; iex ((curl.exe -fsSL https://raw.githubusercontent.com/ComputeLoop/CLworker/master/start.ps1) -join ([char]10))`;
@@ -204,8 +203,8 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
           <div className="datacard result-box">
             <p className="instruction warn">
               This key is shown <strong>only once</strong>. Paste it into the
-              contributor app in step 2 — it is stored on your machine only,
-              and you will not need to type it again.
+              contributor app in step 2 — it is stored on your machine only, and
+              you will not need to type it again.
             </p>
             <div className="key-row">
               <pre className="code-block key-block">{apiKey}</pre>
@@ -220,11 +219,10 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
       <section className="progress-card">
         <p className="section-label">STEP 2 · RUN THE CONTRIBUTOR APP</p>
         <p className="instruction">
-          Copy-paste <strong>one command</strong> — nothing to edit. It
-          installs the runtime if needed and opens the app in your browser:
-          paste your key once, pick a project from the dropdown, press Start.
-          The key is remembered on this machine for next time. Pick your
-          operating system:
+          Copy-paste <strong>one command</strong> — nothing to edit. It installs
+          the runtime if needed and opens the app in your browser: paste your
+          key once, pick a project from the dropdown, press Start. The key is
+          remembered on this machine for next time. Pick your operating system:
         </p>
 
         <div className="os-switch">
@@ -282,7 +280,7 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
         <div className="jobs-table">
           <div className="worker-row job-header">
             <span>NAME</span>
-            <span>GPU / CUDA</span>
+            <span>NVIDIA GPU / Runtime</span>
             <span>STATUS</span>
             <span>CHUNKS DONE</span>
           </div>
@@ -293,17 +291,15 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
 
               <span className="job-range">
                 {worker.gpuName
-                  ? `${worker.gpuName} · ${worker.cudaReady ? "CUDA ready" : "not CUDA-ready"}`
+                  ? `${worker.gpuName} · ${worker.gpuReady ? `${worker.gpuBackend === "directml" ? "DirectML" : "CUDA"} ready` : "GPU not verified"}`
                   : worker.vramMb
-                    ? `${worker.vramMb} MB · not CUDA-ready`
+                    ? `${worker.vramMb} MB · GPU not verified`
                     : "CPU"}
               </span>
 
               <span
                 className={`job-status ${
-                  worker.online
-                    ? "completed"
-                    : worker.status.toLowerCase()
+                  worker.online ? "completed" : worker.status.toLowerCase()
                 }`}
               >
                 <span className="status-dot" />
@@ -319,7 +315,8 @@ WORKER_API_KEY=${apiKey ?? "<your key>"} COMPUTELOOP_API=${API_URL} bun run inde
               <strong>—</strong>
               <span className="job-range">No workers registered yet</span>
               <span className="job-status pending">
-                <span className="status-dot" />OFFLINE
+                <span className="status-dot" />
+                OFFLINE
               </span>
               <span className="worker-name">—</span>
             </div>

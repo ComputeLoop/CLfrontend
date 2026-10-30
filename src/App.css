@@ -1118,3 +1118,23 @@ button {
     display: none;
   }
 }
+.policy-dialog {
+  width: min(760px, calc(100% - 32px));
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid #d8dee8;
+  border-radius: 16px;
+  color: #172033;
+  background: #fff;
+}
+.policy-dialog::backdrop { background: rgb(15 23 42 / 60%); }
+.policy-content { line-height: 1.65; overflow-wrap: anywhere; }
+.policy-content h2 { margin-top: 28px; }
+.policy-content h3 { margin-top: 22px; }
+.help-page { max-width: 850px; line-height: 1.65; }
+.signup-consent { display: grid; gap: 12px; }
+.auth-card .consent-checkbox { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+.auth-card .consent-checkbox input { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 3px; }
+.signup-consent .hint { margin: 0; }
+.create-button:disabled { opacity: 0.55; cursor: not-allowed; }

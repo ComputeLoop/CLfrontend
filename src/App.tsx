@@ -5,6 +5,7 @@ import { useAuth } from "./context/useAuth";
 import Contribute from "./projectDetail/Contribute";
 import Explore from "./explore/Explore";
 import AuthScreen from "./auth/AuthScreen";
+import HelpPage from "./legal/HelpPage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -71,6 +72,7 @@ function Navbar({
         </div>
 
         <nav className="nav-links">
+          <a href="#help">Help / Terms &amp; Privacy</a>
           <a
             className={view === "mine" ? "active" : ""}
             href="#"
@@ -137,6 +139,12 @@ function WalletModal({
 }
 
 function App() {
+  const [helpVisible, setHelpVisible] = useState(window.location.hash === "#help");
+  useEffect(() => {
+    const update = () => setHelpVisible(window.location.hash === "#help");
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
+  }, []);
   const [projects, setProjects] = useState<Project[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -282,6 +290,8 @@ function App() {
       setCreating(false);
     }
   }
+
+  if (helpVisible) return <div className="app"><HelpPage /></div>;
 
   if (loading) {
     return <div>Loading...</div>;
