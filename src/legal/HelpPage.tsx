@@ -7,12 +7,11 @@ export function PolicyContent() {
       <p className="hint">
         Terms and Privacy Notice · Version {POLICY_VERSION}
       </p>
-      <h2>Before you share data or contribute compute</h2>
+      <h2>Before you share data or run a team application</h2>
       <p>
-        Compute Loop is a beta marketplace for predefined computation using mock
-        credits. Contributors download and process readable dataset chunks on
-        their own machines. This is not confidential computing: the platform
-        cannot technically prevent a contributor from copying data they receive.
+        Compute Loop coordinates jobs across computers that workspace members
+        choose to connect. Workspace members can download readable inputs,
+        application packages, and results. The platform cannot prevent a member from copying files they receive.
       </p>
       <p>
         <strong>
@@ -26,35 +25,29 @@ export function PolicyContent() {
       <h2>Terms of Service</h2>
       <h3>1. Your account and permitted use</h3>
       <p>
-        By creating an account, you agree to these terms. Keep your password and
-        worker API keys private. Use the service lawfully and only upload
+        By creating an account, you agree to these terms. Keep your password private. Use the service lawfully and only upload
         material you have permission to share with the platform and
-        participating contributors. You retain ownership of your uploads; you
+        participating workspace members. You retain ownership of your uploads; you
         grant permission to store, distribute, and process them only to deliver
         the requested service.
       </p>
-      <h3>2. Renter responsibilities</h3>
+      <h3>2. Workspace owner and admin responsibilities</h3>
       <p>
-        Review and minimize data before uploading it. Project names,
-        descriptions, owner usernames, operation details, and progress may be
-        visible to other users through Explore and the worker marketplace.
-        Contributors receive assigned input data. The beta accepts datasets for
-        platform-defined operations, not arbitrary renter-provided executable
-        code.
+        Review and minimize data before uploading it. Invite only the people who
+        should have access. Owners and admins publish application packages and
+        define tasks. Test your package before asking members to run it.
       </p>
-      <h3>3. Contributor responsibilities and machine safety</h3>
+      <h3>3. Member responsibilities and machine safety</h3>
       <p>
-        Use data only for the assigned computation. Do not sell, publish, retain
+        Use shared files only for the workspace's authorized work. Do not sell, publish, retain
         for unrelated use, redistribute, or attempt to identify people in
         another user's dataset. Do not tamper with results, attack other users,
-        or upload malicious files. Do not copy inputs outside the worker's
-        temporary workspace.
+        or upload malicious files. Keep any copies you need for authorized work within your team's access controls.
       </p>
-      <h3>4. Results, rewards, and availability</h3>
+      <p>Only run workers you trust. The researcher supplies the software and instructions. Compute Loop does not execute or inspect that software on your behalf.</p>
+      <h3>4. Results, subscriptions, and availability</h3>
       <p>
-        Credits are demonstration credits with no cash value or withdrawal
-        rights. Output hashes check file integrity, not the correctness of an
-        answer. Verify results before relying on them. The beta may produce
+        Demo compute coins cannot be exchanged for money and do not reward machine owners. A result is checked for valid JSON, not scientific correctness. Verify results before relying on them. The beta may produce
         inaccurate results, fail jobs, or experience interruptions; do not use
         it for safety-critical decisions.
       </p>
@@ -62,7 +55,7 @@ export function PolicyContent() {
       <p>
         Access may be restricted for abuse or violations of these terms. The
         beta is provided as available, without a promise of uninterrupted
-        operation, confidentiality on contributor devices, or error-free
+        operation, confidentiality on member devices, or error-free
         results. These terms do not exclude responsibilities or rights that
         applicable law does not allow to be excluded. Opening a notice or
         checking a box does not waive mandatory legal protections.
@@ -72,36 +65,30 @@ export function PolicyContent() {
       <h3>What is stored and why</h3>
       <p>
         Compute Loop stores your email, username, password hash, session
-        records, project metadata, uploaded datasets, chunk manifests, outputs,
-        worker names and hardware details, activity timestamps, and mock-credit
+        records, workspace memberships, applications, task inputs, outputs,
+        worker names and download links, task claims, activity timestamps, and mock billing
         transactions to operate accounts, distribute work, deliver results, and
-        maintain the service. Worker API keys are stored as hashes on the
-        backend; the contributor client saves its connection details and API key
-        on your own machine.
+        maintain the service.
       </p>
       <h3>Who can access data</h3>
       <p>
         The platform operator and hosting infrastructure process stored data.
-        Assigned contributors can access readable inputs; signed download URLs
-        are access controls, not protection from copying after download. Account
-        and result routes restrict access, but project metadata is shared
-        through the marketplace. Compute Loop will not sell your datasets or use
+        Workspace members can access readable inputs, application packages, and outputs.
+        Access checks do not stop a member from copying a downloaded file. There is no public work feed.
+        Compute Loop will not sell your datasets or use
         them for unrelated model training. This commitment does not make
-        independent contributor misuse technically impossible.
+        member misuse technically impossible.
       </p>
       <h3>Retention, cookies, and requests</h3>
       <p>
-        A session cookie keeps you signed in. The client also stores worker
-        connection settings locally. Datasets, results, account records, and
+        A session cookie keeps you signed in. Datasets, results, account records, and
         activity may remain stored during the beta; there is currently no
         automatic dataset-expiry or self-service account-deletion feature.
-        Worker temporary files are normally cleaned up after processing, but
-        crashes or copies made outside the worker can leave data behind.
+        The researcher's worker may leave files on the machine that runs it.
       </p>
       <p>
         For privacy, deletion, security, or misuse requests, contact the Compute
-        Loop maintainer through the official project's contact channels. The
-        worker repository is linked below to help identify the project. Do not
+        Loop maintainer through the official project's contact channels. Do not
         post passwords, API keys, private datasets, or sensitive incident
         details in public issues. Deletion from platform storage cannot recall
         copies already downloaded by others.
@@ -153,20 +140,19 @@ export default function HelpPage() {
       </a>
       <p className="eyebrow">HELP &amp; TRUST</p>
       <h1>Using Compute Loop responsibly</h1>
-      <p>
-        Renters choose a predefined operation, upload data, and fund chunks with
-        mock credits. Contributors choose pending chunks in the local worker.
-        Completed outputs are collected for the renter.
-      </p>
-      <p>
-        <a
-          href="https://github.com/ComputeLoop/CLworker"
-          target="_blank"
-          rel="noreferrer"
-        >
-          View the official worker source
-        </a>
-      </p>
+      <p>A <strong>worker</strong> is the script or program your researcher prepares for a job. Each task shows where to get it and exactly what to run.</p>
+      <section className="packaging-guide">
+        <h2>For researchers: publish a worker</h2>
+        <ol>
+          <li>Prepare a runnable script or program with the code, model, or other assets it needs. Docker is optional. Your worker should produce a valid <code>result.json</code> file of at most 4 MiB.</li>
+          <li>In <strong>Jobs &amp; tasks → Publish a worker</strong>, upload a ZIP (up to 32 MiB) or link to a versioned release such as GitHub Releases. For private releases, make sure members already have access.</li>
+          <li>Write the instructions members will see: supported operating systems, dependencies, the exact command with the task input and arguments, and where the result file is saved.</li>
+          <li>Create a batch job and choose the worker. Define each independent task with its own optional arguments and input ZIP (up to 16 MiB each and 48 MiB total).</li>
+        </ol>
+        <h2>For members: run a task on your computer</h2>
+        <p>Open <strong>Jobs &amp; tasks</strong>, expand a task, and claim it. Download the researcher’s worker and the task input, follow the displayed instructions, then return to the task to upload <code>result.json</code>. There is no separate Compute Loop worker to install and no machine key to copy.</p>
+        <h3>Demo billing</h3><p>Free workspaces allow 3 members; the Team demo plan allows 10. Simulated top-ups and subscriptions do not involve real payments or compute payouts.</p>
+      </section>
       <PolicyContent />
     </main>
   );

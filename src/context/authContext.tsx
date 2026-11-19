@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { AuthContext, type User } from "./authcontext";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:6767").replace(/\/$/, "");
 
 interface AuthResponse {
   message?: string;
@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         setUser(data.user);
       })
+      .catch(() => {})
       .finally(() => {
         setLoading(false);
       });

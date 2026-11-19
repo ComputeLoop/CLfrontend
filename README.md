@@ -1,20 +1,11 @@
 # Compute Loop — web app
 
-React + TypeScript + Vite UI for renters and contributors.
-
-- **Projects page** — create a project (pick the platform op → dataset format
-  follows), upload a dataset, split into chunks, track progress.
-- **Project detail** — dataset upload/split forms, live chunk table
-  (ranges/status/worker), and the merged-result download once all chunks are
-  done.
-- **Contribute** — register a worker machine (GPU info optional); you get a
-  one-time API key and the exact CLI command to run on your machine.
-- **Auth** — email/password registration + login (cookie sessions).
+React + TypeScript + Vite dashboard for campus research workspaces. Owners and admins publish a researcher-prepared worker and define batch tasks. Members claim a task, download the worker and inputs, follow the researcher's instructions to run it on their own computer, and upload their results. Public Help (`#help`) includes the publishing guide and the same terms and privacy notice shown during signup.
 
 ## Run
 
 ```bash
-bun install
+bun install --frozen-lockfile
 bun run dev      # http://localhost:5173
 ```
 
@@ -22,6 +13,4 @@ Build (type-check + bundle): `bun run build`.
 
 ## Configuration
 
-`VITE_API_URL` is the backend URL, e.g. `http://localhost:6767` (see
-`.env.local`). The backend must allow this origin in its CORS list
-(`backend/src/index.ts`).
+Set `VITE_API_URL` to the backend origin (defaults to `http://localhost:6767`). The backend must allow the dashboard's origin in `CORS_ORIGINS`.
