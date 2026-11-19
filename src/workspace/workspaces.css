@@ -8,7 +8,10 @@
 .team-top-actions button, .team-coin-balance { white-space: nowrap; }
 .team-coin-balance { font-variant-numeric: tabular-nums; }
 .team-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.team-topup-input { scroll-margin-top: 130px; }
+.team-topup-dialog { width: min(440px, calc(100% - 32px)); max-height: 85vh; overflow-y: auto; padding: clamp(16px, 4vw, 24px); border: 1px solid #e4e4df; border-radius: 14px; color: #1c1c1f; background: #fff; }
+.team-topup-dialog::backdrop { background: rgb(28 28 31 / 55%); }
+.team-topup-dialog .modal-header { margin-bottom: 12px; }
+.team-topup-dialog summary { cursor: pointer; font-weight: 700; }
 .team-layout { max-width: 1240px; margin: 0 auto; padding: 28px 20px; display: grid; grid-template-columns: minmax(195px, 245px) minmax(0, 1fr); gap: 22px; }
 .team-content { min-width: 0; }
 .team-sidebar, .team-panel { background: white; border: 1px solid #e4e4df; border-radius: 14px; padding: 20px; }
@@ -50,10 +53,10 @@
 .team-badge.running { background: #e3effd; }.team-badge.done { background: #def1d4; }.team-badge.failed { background: #ffe9de; }
 .team-alert,.team-message { padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
 .team-alert { background: #ffe9de; color: #852f1f; }.team-message { background: #e8f1e3; }
-.team-list li.team-task { display: block; }
+.team-list li.team-task, .team-list li.team-worker { display: block; }
 .task-steps { padding-left: 24px; }
 .team-list .task-steps > li { display: list-item; }
-.task-steps pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-radius: 8px; background: #f7f7f5; }
+.task-steps pre, .team-instructions { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-radius: 8px; background: #f7f7f5; }
 .task-steps .team-actions { margin-top: 8px; }
 .team-shell main a { color: #303034; }
 @media (max-width: 690px) {

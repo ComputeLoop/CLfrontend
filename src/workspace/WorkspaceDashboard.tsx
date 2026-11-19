@@ -7,7 +7,7 @@ type Team = { id: string; name: string; paidUntil: number; paid: number; role: R
 type Member = { id: string; username: string; role: Role };
 type App = { id: string; name: string; gpu: number; sourceUrl: string | null; instructions: string };
 type Task = { id: string; jobId: string; label: string; args: string; state: "pending" | "running" | "done" | "failed"; error?: string; inputBytes: number; claimedBy: string | null; assignee: string | null; claimExpiresAt: number | null };
-type Board = { role: Role; paidUntil: number; paid: boolean; members: Member[]; apps: App[]; jobs: { id: string; name: string; appId: string }[]; tasks: Task[] };
+type Board = { role: Role; paidUntil: number; paid: boolean; members: Member[]; apps: App[]; jobs: { id: string; name: string; appId: string; resultInstructions?: string }[]; tasks: Task[] };
 type Account = { workspaces: Team[]; balance: number; freeLimit: number; paidLimit: number; price: number; idrPerCoin: number; invites: { id: string; name: string }[]; transactions: { kind: string; amount: number; at: number }[] };
 const path = (team: string) => `/workspaces/${team}`;
 const idr = (amount: number) => `Rp ${amount.toLocaleString("id-ID")}`;
@@ -57,21 +57,78 @@ function WorkerLink({ app, teamId }: { app: App; teamId: string }) {
     : <a href={`${API}${path(teamId)}/apps/${app.id}/package`}>Download worker ZIP</a>;
 }
 
-function WorkerForm({ teamId, busy, perform }: { teamId: string; busy: boolean; perform: Perform }) {
-  const [source, setSource] = useState("upload");
+function WorkerForm({ teamId, busy, perform, app, locked = false, onDone }: { teamId: string; busy: boolean; perform: Perform; app?: App; locked?: boolean; onDone?: () => void }) {
+  const [source, setSource] = useState(app ? "keep" : "upload");
+  const device = app?.gpu ? "gpu" : "cpu";
   return <form className="team-form" onSubmit={(event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    perform(async () => { await api(`${path(teamId)}/apps`, data); form.reset(); });
+    perform(async () => {
+      const workers = `${path(teamId)}/apps`;
+      if (app) {
+        const result = await api<{ cleanupComplete: boolean }>(`${workers}/${app.id}`, data);
+        onDone?.();
+        return result.cleanupComplete ? "Worker updated." : "Worker updated, but the old ZIP could not be removed.";
+      }
+      await api(workers, data);
+      form.reset();
+      setSource("upload");
+      return "Worker published.";
+    });
   }}>
-    <label>Worker name<input name="name" required maxLength={96} placeholder="Fruit classifier v1" /></label>
-    <label>Hardware requirement<select name="device"><option value="cpu">CPU / no GPU required</option><option value="gpu">NVIDIA GPU required</option></select></label>
-    <label>How members get the worker<select value={source} onChange={(event) => setSource(event.target.value)}><option value="upload">Upload a ZIP</option><option value="link">Link to a release or download</option></select></label>
-    {source === "upload" ? <label>Worker ZIP (up to 32 MiB)<input name="package" type="file" accept=".zip" required /></label> : <label>Download URL (HTTPS)<input name="sourceUrl" type="url" required maxLength={2000} placeholder="https://github.com/your-team/your-worker/releases/tag/v1.0" /></label>}
-    <label>Run instructions for members<textarea name="instructions" rows={5} maxLength={8000} required placeholder={'List the supported OS and dependencies, the exact command with the task input, and where it writes result.json.'} /></label>
-    <button disabled={busy}>Publish worker</button>
+    <label>Worker name<input name="name" required maxLength={96} defaultValue={app?.name} placeholder="Fruit classifier v1" /></label>
+    {locked ? <>
+      <input type="hidden" name="device" value={device} />
+      <input type="hidden" name="instructions" value={app?.instructions ?? ""} />
+      <p className="team-muted">Jobs already use this worker. Publish a new worker to change its files, hardware requirements, or run instructions.</p>
+    </> : <>
+      <label>Hardware requirement<select name="device" defaultValue={device}><option value="cpu">CPU / no GPU required</option><option value="gpu">NVIDIA GPU required</option></select></label>
+      <label>How members get the worker<select value={source} onChange={(event) => setSource(event.target.value)}>{app && <option value="keep">Keep current {app.sourceUrl ? "download link" : "ZIP"}</option>}<option value="upload">Upload a ZIP</option><option value="link">Link to a release or download</option></select></label>
+      {source === "upload" && <label>Worker ZIP (up to 32 MiB)<input name="package" type="file" accept=".zip" required /></label>}
+      {source === "link" && <label>Download URL (HTTPS)<input name="sourceUrl" type="url" required maxLength={2000} defaultValue={app?.sourceUrl ?? ""} placeholder="https://github.com/your-team/your-worker/releases/tag/v1.0" /></label>}
+      <label>Run instructions for members<textarea name="instructions" rows={5} maxLength={8000} required defaultValue={app?.instructions} placeholder="List the supported OS and dependencies, the exact command with the task input, and where it writes result.json." /></label>
+    </>}
+    <div className="team-actions">
+      <button type="submit" disabled={busy}>{app ? "Save worker" : "Publish worker"}</button>
+      {app && <button type="button" className="team-secondary" disabled={busy} onClick={onDone}>Cancel</button>}
+    </div>
   </form>;
+}
+
+function WorkerCatalog({ teamId, board, admin, busy, perform }: { teamId: string; board: Board; admin: boolean; busy: boolean; perform: Perform }) {
+  const [editing, setEditing] = useState<string>();
+  const usedWorkers = new Set(board.jobs.map((job) => job.appId));
+  return <section className="team-panel">
+    <div className="team-panel-heading"><h2>Workers</h2><a href="#help">Worker publishing guide</a></div>
+    {admin && <p className="team-muted">Publish the code members download and run, along with the instructions they’ll need.</p>}
+    {!board.apps.length && <p className="team-muted">No workers have been published yet.</p>}
+    {!!board.apps.length && <ul className="team-list">{board.apps.map((app) => {
+      const inUse = usedWorkers.has(app.id);
+      return <li key={app.id} className="team-worker">
+        <div className="team-panel-heading">
+          <div><strong>{app.name}</strong><small>{app.gpu ? "NVIDIA GPU required" : "CPU / no GPU required"}{inUse && " · Used by a job"}</small></div>
+          <div className="team-actions">
+            <WorkerLink app={app} teamId={teamId} />
+            {admin && <>
+              <button type="button" className="team-secondary" disabled={busy} aria-expanded={editing === app.id} aria-label={`Edit ${app.name}`} onClick={() => setEditing(editing === app.id ? undefined : app.id)}>Edit</button>
+              <button type="button" className="team-secondary" disabled={busy || inUse} aria-label={`Delete ${app.name}`} onClick={() => {
+                if (!window.confirm(`Delete “${app.name}” from this workspace?`)) return;
+                perform(async () => {
+                  const result = await api<{ cleanupComplete: boolean }>(`${path(teamId)}/apps/${app.id}/delete`, {});
+                  setEditing((current) => current === app.id ? undefined : current);
+                  return result.cleanupComplete ? "Worker deleted." : "Worker deleted, but its ZIP could not be removed.";
+                });
+              }}>Delete</button>
+            </>}
+          </div>
+        </div>
+        {app.instructions ? <details><summary>Run instructions</summary><pre className="team-instructions">{app.instructions}</pre></details> : <small>Run instructions have not been added.</small>}
+        {admin && editing === app.id && <WorkerForm teamId={teamId} busy={busy} perform={perform} app={app} locked={inUse} onDone={() => setEditing(undefined)} />}
+      </li>;
+    })}</ul>}
+    {admin && <details><summary>Publish a worker</summary><WorkerForm teamId={teamId} busy={busy} perform={perform} /></details>}
+  </section>;
 }
 
 const taskStatus: Record<Task["state"], string> = { pending: "Available", running: "Claimed", done: "Submitted", failed: "Failed" };
@@ -139,6 +196,7 @@ function JobForm({ teamId, apps, busy, perform }: { teamId: string; apps: App[];
     <div className="team-columns"><label>Job name<input name="name" required maxLength={96} placeholder="Classify lab images" /></label>
       <label>Researcher’s worker<select name="appId" required>{apps.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.gpu ? "GPU" : "CPU"}</option>)}</select></label></div>
     <p className="team-muted">Create one task for each independent batch. Attach the input for that batch and include any arguments your instructions refer to.</p>
+    <label>Result processing instructions (optional)<textarea name="resultInstructions" maxLength={4000} rows={3} placeholder="How should the team combine or verify the downloaded task results?" /></label>
     {drafts.map((row, i) => <fieldset key={row.id} className="task-edit"><legend>Task {i + 1}</legend>
       <label>Label<input value={row.label} required maxLength={96} onChange={(event) => change(row.id, { label: event.target.value })} /></label>
       <label>Arguments (JSON array)<input value={row.args} onChange={(event) => change(row.id, { args: event.target.value })} placeholder='["--start", "0", "--end", "500"]' required /></label>
@@ -149,18 +207,70 @@ function JobForm({ teamId, apps, busy, perform }: { teamId: string; apps: App[];
   </form>;
 }
 
+function TopUpDialog({ account, applyAccount, onClose }: { account: Account; applyAccount: (account: Account) => void; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const amount = useRef<HTMLInputElement>(null);
+  const [coins, setCoins] = useState(30);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const validAmount = Number.isInteger(coins) && coins >= 1 && coins <= 1000;
+
+  useEffect(() => {
+    if (!dialog.current?.open) dialog.current?.showModal();
+    amount.current?.focus();
+  }, []);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || !validAmount) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await api("/top-up", { coins });
+      const notice = `Added ${coins.toLocaleString("id-ID")} ${coins === 1 ? "coin" : "coins"}.`;
+      try {
+        applyAccount(await api<Account>("/me"));
+        setMessage(notice);
+      } catch {
+        setMessage(`${notice} Your balance will refresh shortly.`);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not top up your balance.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <dialog id="team-topup-dialog" ref={dialog} className="team-topup-dialog" aria-labelledby="team-topup-title" aria-describedby="team-topup-description" onClose={onClose} onCancel={(event) => { if (busy) event.preventDefault(); }}>
+    <div className="modal-header">
+      <h2 id="team-topup-title">Top up compute coins</h2>
+      <button type="button" className="close-button" aria-label="Close top-up" disabled={busy} onClick={() => dialog.current?.close()}>×</button>
+    </div>
+    <p id="team-topup-description">Use Compute coins for workspace plans. No payment is required to add coins.</p>
+    <p><strong>{account.balance.toLocaleString("id-ID")}</strong> coins available</p>
+    <form className="team-form" onSubmit={(event) => void submit(event)}>
+      <label>Coins to top up<input ref={amount} type="number" min={1} max={1000} step={1} required disabled={busy} value={Number.isNaN(coins) ? "" : coins} onChange={(event) => setCoins(event.target.valueAsNumber)} /></label>
+      {validAmount && <small className="team-muted">Reference value: {idr(coins * account.idrPerCoin)}</small>}
+      <button type="submit" className="create-button" disabled={busy || !validAmount}>{busy ? "Adding coins…" : "Add coins"}</button>
+    </form>
+    {error && <p className="team-alert" role="alert">{error}</p>}
+    {message && <p className="team-message" role="status">{message}</p>}
+    {!!account.transactions.length && <details><summary>Coin history</summary><ul className="team-list">{account.transactions.map((item, i) => <li key={`${item.at}-${i}`}><span>{item.kind} <small>{new Date(item.at).toLocaleString()}</small></span><strong>{item.amount > 0 ? "+" : ""}{item.amount} coins</strong></li>)}</ul></details>}
+  </dialog>;
+}
+
 export function WorkspaceDashboard() {
   const { user, logout } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
   const [workspace, setWorkspace] = useState("");
   const [boardState, setBoardState] = useState<{ id: string; value: Board }>();
-  const [tab, setTab] = useState<"jobs" | "team" | "billing">("jobs");
+  const [tab, setTab] = useState<"jobs" | "team" | "plans">("jobs");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [coins, setCoins] = useState(30);
-  const topUpInput = useRef<HTMLInputElement>(null);
-  const focusTopUp = useRef(false);
+  const [topUpOpen, setTopUpOpen] = useState(false);
   const board = boardState?.id === workspace ? boardState.value : undefined;
   const team = account?.workspaces.find((item) => item.id === workspace);
   const applyAccount = useCallback((result: Account) => {
@@ -191,22 +301,6 @@ export function WorkspaceDashboard() {
     const timer = window.setInterval(load, 3000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [workspace]);
-  useEffect(() => {
-    if (tab === "billing" && focusTopUp.current) {
-      topUpInput.current?.focus();
-      focusTopUp.current = false;
-    }
-  }, [tab]);
-  function openTopUp() {
-    setError("");
-    setMessage("");
-    if (tab === "billing") {
-      topUpInput.current?.focus();
-    } else {
-      focusTopUp.current = true;
-      setTab("billing");
-    }
-  }
   const perform: Perform = (fn) => {
     setBusy(true); setError(""); setMessage("");
     void fn().then(async (notice) => {
@@ -235,11 +329,12 @@ export function WorkspaceDashboard() {
         <a className="team-top-help" href="#help">Help &amp; packaging guide</a>
         <div className="nav-account team-top-actions">
           <span className="wallet-button team-coin-balance"><span aria-hidden="true">🪙:</span><span className="team-visually-hidden">Compute coins: </span> {account?.balance.toLocaleString("id-ID") ?? "—"}</span>
-          <button type="button" className="create-button" disabled={!account} onClick={openTopUp}>Top up</button>
+          <button type="button" className="create-button" aria-haspopup="dialog" disabled={!account} onClick={() => setTopUpOpen(true)}>Top up</button>
           <button type="button" className="sign-in-button" onClick={() => void logout()}>Sign out</button>
         </div>
       </div>
     </header>
+    {topUpOpen && account && <TopUpDialog account={account} applyAccount={applyAccount} onClose={() => setTopUpOpen(false)} />}
     <main className="team-layout">
       <aside className="team-sidebar">
         <p className="team-kicker">WORKSPACES</p>
@@ -254,13 +349,9 @@ export function WorkspaceDashboard() {
           <h1>{team?.name ?? "Put your team’s machines to work."}</h1>
           <p>{team ? (admin ? "Publish your worker and run instructions, then split the job into tasks members can run on their own computers." : "Pick a task, download the worker your researcher published, and submit the result after running it on your computer.") : `Hi ${user?.username ?? "there"}. Create a workspace or accept an invitation to run your team’s batch workloads.`}</p></section>
         {error && <p className="team-alert" role="alert">{error}</p>}{message && <p className="team-message" role="status">{message}</p>}
-        {team && <nav className="team-tabs" aria-label="Workspace sections">{([ ["jobs", "Jobs & tasks"], ["team", "Members"], ["billing", "Demo billing"] ] as const).map(([value, label]) => <button key={value} aria-pressed={tab === value} onClick={() => { setTab(value); setError(""); setMessage(""); }}>{label}</button>)}</nav>}
+        {team && <nav className="team-tabs" aria-label="Workspace sections">{([ ["jobs", "Jobs & tasks"], ["team", "Members"], ["plans", "Plans"] ] as const).map(([value, label]) => <button key={value} aria-pressed={tab === value} onClick={() => { setTab(value); setError(""); setMessage(""); }}>{label}</button>)}</nav>}
         {tab === "jobs" && board && <>
-          {admin && <section className="team-panel"><div className="team-panel-heading"><h2>Workers your team publishes</h2><a href="#help">Worker publishing guide</a></div>
-            <p className="team-muted">A worker is the script or program your members download and run. Upload it or link to a release, and tell members exactly how to use it.</p>
-            {!!board.apps.length && <ul className="team-list">{board.apps.map((item) => <li key={item.id}><span><strong>{item.name}</strong>{!item.instructions && <small>Missing run instructions — republish for new jobs</small>}</span><WorkerLink app={item} teamId={workspace} /></li>)}</ul>}
-            <details><summary>Publish a worker</summary><WorkerForm key={workspace} teamId={workspace} busy={busy} perform={perform} /></details>
-          </section>}
+          <WorkerCatalog key={workspace} teamId={workspace} board={board} admin={admin} busy={busy} perform={perform} />
           <section className="team-panel"><div className="team-panel-heading"><h2>Jobs &amp; tasks</h2></div>
             {admin && published.length > 0 && <details><summary>Create a batch job</summary><JobForm key={workspace} teamId={workspace} apps={published} busy={busy} perform={perform} /></details>}
             {!board.jobs.length && <p className="team-muted">{admin ? "Publish a worker, then create a batch job to give members tasks to run." : "Your researcher hasn’t published any tasks yet."}</p>}
@@ -269,6 +360,7 @@ export function WorkspaceDashboard() {
               const done = tasks.filter((item) => item.state === "done").length;
               return <article key={job.id} className="team-job"><div className="team-panel-heading"><div><h3>{job.name}</h3><span className="team-muted">{done} / {tasks.length} complete</span></div>{done > 0 && <a href={`${API}${path(workspace)}/jobs/${job.id}/results`}>{done === tasks.length ? "Download results" : "Download partial results"}</a>}</div>
                 <progress max={tasks.length} value={done} aria-label={`${job.name} progress`} />
+                {job.resultInstructions && <details><summary>How to process the results</summary><pre className="team-instructions">{job.resultInstructions}</pre></details>}
                 <ul className="team-list">{tasks.map((item) => <TaskCard key={item.id} task={item} app={board.apps.find((app) => app.id === job.appId)} teamId={workspace} userId={user?.id} admin={admin} busy={busy} perform={perform} />)}</ul>
               </article>;
             })}
@@ -281,12 +373,10 @@ export function WorkspaceDashboard() {
           </section>
           {owner && team && <WorkspaceDeletion key={team.id} team={team} busy={busy} perform={perform} />}
         </>}
-        {tab === "billing" && account && <section className="team-panel"><p className="team-kicker">SIMULATION · NO REAL MONEY</p><h2>Compute coins</h2><p><strong>{account.balance}</strong> coins in your account. For this demo, 1 coin represents {idr(account.idrPerCoin)}. Coins only pay for workspace plans.</p>
-          <form className="team-form" onSubmit={(event) => { event.preventDefault(); perform(async () => { await api("/top-up", { coins }); }); }}><label>Coins to top up<input ref={topUpInput} className="team-topup-input" type="number" min={1} max={1000} required value={Number.isNaN(coins) ? "" : coins} onChange={(event) => setCoins(event.target.valueAsNumber)} /></label><button disabled={busy || !Number.isFinite(coins)}>Simulate top-up · {idr((coins || 0) * account.idrPerCoin)}</button></form>
-          <hr /><h3>Workspace plans</h3><p>Free: {account.freeLimit} members. Team: {account.paidLimit} members for {account.price} coins ({idr(account.price * account.idrPerCoin)}) per 30 days. The owner counts toward the limit. Demo pricing is provisional.</p>
-          {owner && <button disabled={busy} onClick={() => { if (window.confirm(`Spend ${account.price} demo coins to add 30 days to ${team?.name}?`)) perform(async () => { await api(`${path(workspace)}/subscribe`, {}); }); }}>{paid ? "Extend demo subscription" : "Activate demo subscription"}</button>}
+        {tab === "plans" && account && team && <section className="team-panel"><h2>Workspace plans</h2>
+          <p>Free: {account.freeLimit} members. Team: {account.paidLimit} members for {account.price} Compute coins per 30 days. The owner counts toward the limit.</p>
+          {owner && <button disabled={busy} onClick={() => { if (window.confirm(`Spend ${account.price} coins to add 30 days to ${team.name}?`)) perform(async () => { await api(`${path(workspace)}/subscribe`, {}); }); }}>{paid ? "Extend Team plan" : "Activate Team plan"}</button>}
           {paid && board && <p>Team plan active through {new Date(board.paidUntil).toLocaleDateString()}.</p>}
-          {!!account.transactions.length && <ul className="team-list">{account.transactions.map((item, i) => <li key={`${item.at}-${i}`}><span>{item.kind} <small>{new Date(item.at).toLocaleString()}</small></span><strong>{item.amount > 0 ? "+" : ""}{item.amount} coins</strong></li>)}</ul>}
         </section>}
       </div>
     </main>

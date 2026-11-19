@@ -47,14 +47,12 @@ export function PolicyContent() {
       <p>Only run workers you trust. The researcher supplies the software and instructions. Compute Loop does not execute or inspect that software on your behalf.</p>
       <h3>4. Results, subscriptions, and availability</h3>
       <p>
-        Demo compute coins cannot be exchanged for money and do not reward machine owners. A result is checked for valid JSON, not scientific correctness. Verify results before relying on them. The beta may produce
-        inaccurate results, fail jobs, or experience interruptions; do not use
-        it for safety-critical decisions.
+        Compute coins cannot be exchanged for money and do not reward machine owners. A result is checked for valid JSON, not scientific correctness. Verify results before relying on them. Jobs can fail, results can be inaccurate, and service can be interrupted. Do not use Compute Loop for safety-critical decisions.
       </p>
       <h3>5. Misuse and responsibility</h3>
       <p>
         Access may be restricted for abuse or violations of these terms. The
-        beta is provided as available, without a promise of uninterrupted
+        service is provided as available, without a promise of uninterrupted
         operation, confidentiality on member devices, or error-free
         results. These terms do not exclude responsibilities or rights that
         applicable law does not allow to be excluded. Opening a notice or
@@ -66,7 +64,7 @@ export function PolicyContent() {
       <p>
         Compute Loop stores your email, username, password hash, session
         records, workspace memberships, applications, task inputs, outputs,
-        worker names and download links, task claims, activity timestamps, and mock billing
+        worker names and download links, task claims, activity timestamps, and Compute coin
         transactions to operate accounts, distribute work, deliver results, and
         maintain the service.
       </p>
@@ -82,7 +80,7 @@ export function PolicyContent() {
       <h3>Retention, cookies, and requests</h3>
       <p>
         A session cookie keeps you signed in. Datasets, results, account records, and
-        activity may remain stored during the beta; there is currently no
+        activity may remain stored; there is currently no
         automatic dataset-expiry or self-service account-deletion feature.
         The researcher's worker may leave files on the machine that runs it.
       </p>
@@ -149,9 +147,10 @@ export default function HelpPage() {
           <li>Write the instructions members will see: supported operating systems, dependencies, the exact command with the task input and arguments, and where the result file is saved.</li>
           <li>Create a batch job and choose the worker. Define each independent task with its own optional arguments and input ZIP (up to 16 MiB each and 48 MiB total).</li>
         </ol>
+        <p>Workspace owners and admins can edit or delete workers from the <strong>Workers</strong> list. Once a worker is used by a job, only its name can change. Publish a new worker to use a different package or run instructions in future jobs.</p>
         <h2>For members: run a task on your computer</h2>
         <p>Open <strong>Jobs &amp; tasks</strong>, expand a task, and claim it. Download the researcher’s worker and the task input, follow the displayed instructions, then return to the task to upload <code>result.json</code>. There is no separate Compute Loop worker to install and no machine key to copy.</p>
-        <h3>Demo billing</h3><p>Free workspaces allow 3 members; the Team demo plan allows 10. Simulated top-ups and subscriptions do not involve real payments or compute payouts.</p>
+        <h3>Plans</h3><p>Free workspaces allow 3 members; the Team plan allows 10. Use <strong>Top up</strong> in the signed-in header to add Compute coins to your account. Coins are used for workspace plans and cannot be cashed out.</p>
       </section>
       <PolicyContent />
     </main>
