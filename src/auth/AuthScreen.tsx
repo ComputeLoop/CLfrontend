@@ -49,7 +49,7 @@ export default function AuthScreen() {
         <p className="subtitle">
           {isLogin
             ? "Sign in to access your compute projects."
-            : "Join the distributed computing network."}
+            : "Create a workspace and run batch jobs across your team’s computers."}
         </p>
 
         {error && <p className="auth-error">{error}</p>}
@@ -97,7 +97,7 @@ export default function AuthScreen() {
               <label className="consent-checkbox">
                 <input type="checkbox" required disabled={!termsOpened} checked={termsAccepted}
                   onChange={(event) => setTermsAccepted(event.target.checked)} />
-                <span>I agree to the Terms of Service and acknowledge the Privacy Notice (version {POLICY_VERSION}), including that contributors receive readable input data.</span>
+                <span>I agree to the Terms of Service and acknowledge the Privacy Notice (version {POLICY_VERSION}), including that workspace members can access shared data and application files.</span>
               </label>
               {!termsOpened && <p className="hint">Open the notice to enable this checkbox. Opening it does not automatically accept it.</p>}
             </div>
